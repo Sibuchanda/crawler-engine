@@ -1,3 +1,6 @@
+![Building](https://img.shields.io/github/actions/workflow/status/BiltuDas1/crawler-engine/go-build.yml?label=Build&logo=textpattern&style=flat-square&logoColor=white)
+![Testing](https://img.shields.io/github/actions/workflow/status/BiltuDas1/crawler-engine/go-test.yml?label=Test&logo=speedtest&style=flat-square&logoColor=white)
+
 # Crawler Engine
 
 A simple Web Crawler for a model Search Engines like Google
