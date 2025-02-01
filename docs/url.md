@@ -30,3 +30,13 @@ ExtractURL() is a public function that extracts all the URL from the html body w
   - baseURL: string (The original URL, which HTML body is taken as input)
 - Returns:
   - Returns slice of string, contains all the extracted URLs
+
+### FetchData()
+
+FetchData() is a public function that takes the input URL, and download the HTML content from the URL and returns a [io.Reader](https://pkg.go.dev/io#Reader) Object of it.
+
+- Parameters:
+  - url: string (The URL Which content will be accessed)
+- Returns:
+  - Returns [io.Reader](https://pkg.go.dev/io#Reader) which contains the HTML Data
+  - Returns error if any error occurred

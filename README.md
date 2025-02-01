@@ -23,7 +23,14 @@ A simple Web Crawler for a model Search Engines like Google
 - Return the href attribute value
 
 ### Store HTML Code into Persistent Memory
-- 
+
+- HTML Input
+- Asking for Consistent Hashing where to store the data
+  - Declare node IP/Port
+  - Input Hash as Parameter (XXH3)
+  - Sending GET Request
+  - Getting Output of the IP/Port
+- Store the data into Persistent memory
 
 ### Store the URL's back into Queue
 

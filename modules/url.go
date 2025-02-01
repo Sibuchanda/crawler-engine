@@ -2,17 +2,11 @@ package modules
 
 import (
 	"io"
+	"net/http"
 	"net/url"
 
 	"golang.org/x/net/html"
 )
-
-// CrawlResult holds the results of a single crawl.
-type CrawlResult struct {
-	URL   string
-	Links []string
-	Error error
-}
 
 // resolveURL resolves a relative URL against a base URL and returns the absolute URL
 func resolveURL(ref, base string) string {
@@ -64,4 +58,13 @@ func ExtractURL(body io.Reader, baseURL string) []string {
 	}
 
 	return links
+}
+
+// FetchData fetchs the Webpage Data from the input URL
+func FetchData(url string) (io.Reader, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	return resp.Body, nil
 }
