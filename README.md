@@ -22,6 +22,9 @@ A simple Web Crawler for a model Search Engines like Google
 - Extract href attribute value from the Anchor Tag
 - Return the href attribute value
 
+### Store HTML Code into Persistent Memory
+- 
+
 ### Store the URL's back into Queue
 
 ### Store HTML Code into Persistent Memory

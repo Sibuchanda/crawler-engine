@@ -22,4 +22,5 @@ func main() {
 
 	result := mod.ExtractURL(resp.Body, "https://example.com/")
 	fmt.Println(result)
+
 }
