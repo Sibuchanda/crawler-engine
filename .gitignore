@@ -26,3 +26,6 @@ go.work.sum
 
 # HTML
 test.html
+
+# Docker files
+docker-compose.yml
