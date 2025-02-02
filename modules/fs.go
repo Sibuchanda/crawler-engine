@@ -3,9 +3,11 @@ package modules
 import (
 	"io"
 	"os"
+
+	"github.com/zeebo/xxh3"
 )
 
-// Save the io.Reader content into file
+// SaveFile Saves the io.Reader content into file
 func SaveFile(content io.Reader, filename string) error {
 	body, err := io.ReadAll(content)
 	if err != nil {
@@ -23,4 +25,14 @@ func SaveFile(content io.Reader, filename string) error {
 		return err
 	}
 	return nil
+}
+
+// GetHash Get the hash of the io.Reader content
+func GetHash64(data io.Reader) (uint64, error) {
+	content, err := io.ReadAll(data)
+	if err != nil {
+		return 0, err
+	}
+
+	return xxh3.Hash(content), nil
 }

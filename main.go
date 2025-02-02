@@ -3,24 +3,21 @@ package main
 import (
 	mod "crawler-engine/modules"
 	"fmt"
-	"net/http"
 	"os"
 )
 
 func main() {
-	resp, err := http.Get("https://example.com/")
+	f, err := os.Open("test.html")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		fmt.Printf("HTTP status: %s\n", resp.Status)
+	var hash uint64
+	hash, err = mod.GetHash64(f)
+	if err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
-
-	result := mod.ExtractURL(resp.Body, "https://example.com/")
-	fmt.Println(result)
-
+	fmt.Println(hash)
 }

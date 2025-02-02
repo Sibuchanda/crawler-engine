@@ -5,7 +5,10 @@ go 1.23.1
 // indirect
 require golang.org/x/net v0.33.0
 
-require github.com/minio/minio-go/v7 v7.0.84
+require (
+	github.com/minio/minio-go/v7 v7.0.84
+	github.com/zeebo/xxh3 v1.0.2
+)
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
