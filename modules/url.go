@@ -1,9 +1,11 @@
 package modules
 
 import (
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"golang.org/x/net/html"
 )
@@ -61,10 +63,16 @@ func ExtractURL(body io.Reader, baseURL string) []string {
 }
 
 // FetchData fetchs the Webpage Data from the input URL
-func FetchData(url string) (io.Reader, error) {
+//
+// Throws an error if response status code is anything other than 200
+func FetchData(url string) (io.ReadCloser, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.StatusCode != 200 {
+		return nil, errors.New("HTTP Connection Error (ErrorCode: " + strconv.Itoa(resp.StatusCode) + ")")
 	}
 	return resp.Body, nil
 }
