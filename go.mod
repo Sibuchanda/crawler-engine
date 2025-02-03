@@ -7,6 +7,7 @@ require golang.org/x/net v0.33.0
 
 require (
 	github.com/minio/minio-go/v7 v7.0.84
+	github.com/rabbitmq/amqp091-go v1.10.0
 	github.com/zeebo/xxh3 v1.0.2
 )
 
