@@ -26,6 +26,12 @@ go.work.sum
 
 # HTML
 test.html
+process.html
 
 # Docker files
 docker-compose.yml
+
+# Temporary Directory
+temp/
+__debug*
+.vscode

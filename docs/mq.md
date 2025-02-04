@@ -31,6 +31,7 @@ DeclareQueue() is a function that helps to declare a Queue, if a Queue doesn't e
 
 - Parameters:
   - name: string (The name of the Queue)
+  - prob: Range (Probability of Choosing Queue)
 - Returns:
   - Returns error (if occurred)
 
@@ -40,6 +41,7 @@ SendMessage() is a function that push message into the Queue
 
 - Parameters:
   - message: []byte (The message which will be stored)
+  - queueName: string (The name of the queue)
 - Returns:
   - Returns error (if occurred)
 
@@ -48,15 +50,16 @@ SendMessage() is a function that push message into the Queue
 ReceiveMessage() is a function that pop the message from the Queue
 
 - Parameters:
+  - queueName: string (The name of the queue)
 - Returns:
   - Returns []byte containing the message
   - Returns error (if occurred)
 
 ### PickQueues()
 
-PickQueues() is a function that Picks a random Queue from the slice, and returns it's Index.
+PickQueues() is a function that Picks a random Queue from the queues which is declared using DeclareQueue()
 
 - Parameters:
-  - queues: []MQ (Slice of MQ Types containing Queues)
 - Returns:
-  - Returns random index among the queues, If picking random index failed then it returns -1.
+  - Returns the ProbQueue Object
+  - Returns error (if occurred)
