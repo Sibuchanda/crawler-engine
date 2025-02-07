@@ -1,23 +1,23 @@
 package main
 
 import (
+	"bytes"
 	mod "crawler-engine/modules"
+	"io"
 	"log"
+	"strconv"
+
+	"github.com/zeebo/xxh3"
 )
 
 func main() {
 	// Loading Environment
 	isworking := false
 	Env := mod.Env{}
-	// err := Env.LoadEnv()
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	Env.Queue.IP = "localhost"
-	Env.Queue.Port = 5672
-	Env.Queue.URI = "amqp://guest:guest@localhost:5672/"
-	Env.Queue.User = "guest"
-	Env.Queue.Password = "guest"
+	err := Env.LoadEnv()
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	// Setting Up Queues
 	var mqserver mod.MQ
@@ -41,6 +41,8 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
+		// Skip to next iteration if the current queue is empty
 		if len(data) == 0 {
 			continue
 		}
@@ -50,7 +52,7 @@ func main() {
 		// Print for once
 		if !isworking {
 			log.Println("Message received... Processing")
-			// isworking = true
+			isworking = true
 		}
 
 		// Downloading HTML Code
@@ -58,13 +60,45 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		urls := mod.ExtractURL(body, url)
-		err = mod.SaveFile(body, "process.html")
+
+		var buf bytes.Buffer
+		tee := io.TeeReader(body, &buf)
+		err = mod.SaveFile(tee, "process.html")
+		if err != nil {
+			log.Fatalln(err)
+		}
+		urls := mod.ExtractURL(&buf, url)
+		body.Close()
+
+		log.Printf("Total Got URLs: %d\n", len(urls))
+
+		// Storing HTML file into Persistent Memory
+		s3 := mod.MinIO{}
+		chash := mod.Hashing{}
+
+		err = chash.Connect(Env.ConsistentHashing.URI, "v1")
 		if err != nil {
 			log.Fatalln(err)
 		}
 
-		log.Printf("Total Got URLs: %d\n", len(urls))
+		urlhash := xxh3.HashString(url)
+
+		err = chash.GetNode64(urlhash)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		err = s3.Connect(Env.MinIO.Endpoint, Env.MinIO.AccessKey, Env.MinIO.SecretAccessKey)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		err = s3.UploadFile("storage", strconv.FormatUint(urlhash, 10), "process.html", "text/html")
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		// Storing Information into Queue for Indexing Node to Process
 
 		// runtime.Gosched() // For Preventing 100% CPU Usage
 	}

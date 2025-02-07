@@ -35,3 +35,13 @@ A simple Web Crawler for a model Search Engines like Google
 - Store the data into Persistent memory
 
 ### Store the HTML Code Information into Queue
+
+# Environment Variables
+
+| Environment Name         | Required | Description                             |
+| ------------------------ | -------- | --------------------------------------- |
+| `QUEUE`                  | Yes      | Contains the RabbitMQ AMQP url          |
+| `CH_API`                 | Yes      | Contains the Consistent hashing API url |
+| `MINIO_ENDPOINT`         | Yes      | Contains MinIO API Endpoint             |
+| `MINIO_ACCESSKEY`        | Yes      | Contains MinIO AccessKey                |
+| `MINIO_SECRET_ACCESSKEY` | Yes      | Contains MinIO Secret AccessKey         |
