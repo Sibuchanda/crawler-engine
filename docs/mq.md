@@ -51,6 +51,7 @@ ReceiveMessage() is a function that pop the message from the Queue
 
 - Parameters:
   - queueName: string (The name of the queue)
+  - timeout: time.Duration (Seconds to wait for receiving message)
 - Returns:
   - Returns []byte containing the message
   - Returns error (if occurred)

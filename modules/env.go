@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-type ServerInfo struct {
-	IP   string
-	Port uint16
-	URI  string
-}
+// type ServerInfo struct {
+// 	IP   string
+// 	Port uint16
+// 	URI  string
+// }
 
 type MinIOCredentials struct {
 	Endpoint        string
@@ -30,9 +30,9 @@ type QueueDetails struct {
 }
 
 type Env struct {
-	Queue             QueueDetails
-	ConsistentHashing ServerInfo
-	MinIO             MinIOCredentials
+	Queue QueueDetails
+	// ConsistentHashing ServerInfo
+	MinIO MinIOCredentials
 }
 
 // parseAMQPURL extracts details from an AMQP URL
@@ -66,25 +66,25 @@ func parseAMQPURL(amqpURL string) (QueueDetails, error) {
 	}, nil
 }
 
-// parseURL parse url and extract ip and port
-func parseURL(uri string) (ServerInfo, error) {
-	parsedURL, err := url.Parse(uri)
-	if err != nil {
-		return ServerInfo{}, fmt.Errorf("invalid URL: %s", uri)
-	}
+// // parseURL parse url and extract ip and port
+// func parseURL(uri string) (ServerInfo, error) {
+// 	parsedURL, err := url.Parse(uri)
+// 	if err != nil {
+// 		return ServerInfo{}, fmt.Errorf("invalid URL: %s", uri)
+// 	}
 
-	ip := parsedURL.Hostname()
-	port, err := strconv.ParseUint(parsedURL.Port(), 10, 16)
-	if err != nil {
-		return ServerInfo{}, fmt.Errorf("unable to parse port of URL: %s", uri)
-	}
+// 	ip := parsedURL.Hostname()
+// 	port, err := strconv.ParseUint(parsedURL.Port(), 10, 16)
+// 	if err != nil {
+// 		return ServerInfo{}, fmt.Errorf("unable to parse port of URL: %s", uri)
+// 	}
 
-	return ServerInfo{
-		IP:   ip,
-		Port: uint16(port),
-		URI:  uri,
-	}, nil
-}
+// 	return ServerInfo{
+// 		IP:   ip,
+// 		Port: uint16(port),
+// 		URI:  uri,
+// 	}, nil
+// }
 
 // loadQueues Load the Environment Variable Related to Queues
 func (t *Env) loadQueues() (err error) {
@@ -103,21 +103,21 @@ func (t *Env) loadQueues() (err error) {
 	return
 }
 
-// loadConsistentHashing Load the Environment Variable Related to Consistent Hashing
-func (t *Env) loadConsistentHashing() (err error) {
-	api, exists := os.LookupEnv("CH_API")
-	if !exists {
-		return errors.New("CH_API environment doesn't exist")
-	}
+// // loadConsistentHashing Load the Environment Variable Related to Consistent Hashing
+// func (t *Env) loadConsistentHashing() (err error) {
+// 	api, exists := os.LookupEnv("CH_API")
+// 	if !exists {
+// 		return errors.New("CH_API environment doesn't exist")
+// 	}
 
-	chapi, err := parseURL(api)
-	if err != nil {
-		return err
-	}
+// 	chapi, err := parseURL(api)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	t.ConsistentHashing = chapi
-	return
-}
+// 	t.ConsistentHashing = chapi
+// 	return
+// }
 
 // loadMinIOEnv Loads the Environment Variable Related to MinIO
 func (t *Env) loadMinIOEnv() (err error) {
@@ -149,10 +149,10 @@ func (t *Env) LoadEnv() (err error) {
 		return err
 	}
 
-	err = t.loadConsistentHashing()
-	if err != nil {
-		return err
-	}
+	// err = t.loadConsistentHashing()
+	// if err != nil {
+	// 	return err
+	// }
 
 	err = t.loadMinIOEnv()
 	if err != nil {

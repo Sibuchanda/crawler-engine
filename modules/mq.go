@@ -8,6 +8,13 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+type DistributedQueue interface {
+	Connect() error
+	Disconnect() error
+	SendMessage() error
+	ReceiveMessage(string) ([]byte, error)
+}
+
 type Range struct {
 	Low  uint8
 	High uint8
@@ -118,14 +125,19 @@ func (t *MQ) SendMessage(message []byte, queueName string) (err error) {
 }
 
 // ReceiveMessage receives the message from the Queue
-func (t *MQ) ReceiveMessage(queueName string) (message []byte, err error) {
+func (t *MQ) ReceiveMessage(queueName string, timeout time.Duration) (message []byte, err error) {
 	if _, ok := t.Queues[queueName]; !ok {
 		return nil, errors.New("queue doesn't exist, Please declare the queue first")
 	}
 
-	var consumer <-chan amqp.Delivery
+	if t.consumer == nil {
+		t.consumer = make(map[string]<-chan amqp.Delivery)
+	}
 
-	if len(t.consumer) == 0 {
+	// var consumer <-chan amqp.Delivery
+	consumer, exists := t.consumer[queueName]
+
+	if !exists {
 		consumer, err = t.channel.Consume(
 			queueName, // Queue Name
 			"",        // consumer
@@ -140,36 +152,15 @@ func (t *MQ) ReceiveMessage(queueName string) (message []byte, err error) {
 			return nil, err
 		}
 
-		t.consumer = make(map[string]<-chan amqp.Delivery)
 		t.consumer[queueName] = consumer
-	} else {
-		if ch, ok := t.consumer[queueName]; ok {
-			consumer = ch
-		} else {
-			consumer, err = t.channel.Consume(
-				queueName, // Queue Name
-				"",        // consumer
-				false,     // Auto Acknowledgment
-				false,     // Exclusive/Sharable
-				false,     // No-local
-				false,     // No-wait
-				nil,       // Arguments
-			)
-
-			if err != nil {
-				return nil, err
-			}
-
-			t.consumer[queueName] = consumer
-		}
 	}
 
 	select {
 	case msg := <-consumer:
 		message = msg.Body
-		msg.Ack(true)
+		msg.Ack(false)
 		return message, nil
-	case <-time.After(3 * time.Second):
+	case <-time.After(timeout * time.Second):
 		return
 	}
 }
