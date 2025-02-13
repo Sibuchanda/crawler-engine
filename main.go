@@ -23,6 +23,12 @@ func main() {
 	mqserver.DeclareQueue("queue2", mod.Range{Low: 51, High: 80})
 	mqserver.DeclareQueue("queue3", mod.Range{Low: 81, High: 100})
 
+	var indexMQ mod.MQ
+	indexMQ.Connect(Env.Queue.URI)
+	defer indexMQ.Disconnect()
+
+	indexMQ.DeclareQueue("index", mod.Range{Low: 100, High: 100})
+
 	// Setting Up Persistent Storage
 	s3 := mod.MinIO{}
 	err = s3.Connect(Env.MinIO.Endpoint, Env.MinIO.AccessKey, Env.MinIO.SecretAccessKey)
@@ -33,7 +39,7 @@ func main() {
 	// Main Process
 	log.Println("Service is started...")
 	for {
-		run(&mqserver, &s3, "storage")
+		run(&mqserver, &s3, "storage", &indexMQ, "index")
 		runtime.Gosched() // For Preventing 100% CPU Usage
 	}
 }

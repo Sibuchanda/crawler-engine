@@ -12,10 +12,20 @@ SaveFile() is a function that takes the [io.Reader](https://pkg.go.dev/io#Reader
 
 ### GetHash64()
 
-GetHash() is a function that takes the [io.Reader](https://pkg.go.dev/io#Reader) object, and return the [XXH3](http://www.xxhash.com/) hash of it.
+GetHash64() is a function that takes the [io.Reader](https://pkg.go.dev/io#Reader) object, and return the [XXH3](http://www.xxhash.com/) hash of it.
 
 - Parameters:
   - data: [io.Reader](https://pkg.go.dev/io#Reader) (The Content which will be used for hashing)
 - Returns:
   - Returns uint64
+  - Returns error (if occurred)
+
+### GetHash128()
+
+GetHash128() is a function that takes the [io.Reader](https://pkg.go.dev/io#Reader) object, and return the [XXH3](http://www.xxhash.com/) hash of it.
+
+- Parameters:
+  - data: [io.Reader](https://pkg.go.dev/io#Reader) (The Content which will be used for hashing)
+- Returns:
+  - Returns xxh3.Uint128
   - Returns error (if occurred)

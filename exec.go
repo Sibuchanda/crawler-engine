@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	mod "crawler-engine/modules"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -15,7 +16,8 @@ import (
 // run Starts Execution of the Service
 //
 // Note: this run function doesn't run in Infinite Loop
-func run(mq *mod.MQ, s3 *mod.MinIO, bucketName string) {
+func run(mq *mod.MQ, s3 *mod.MinIO, bucketName string, indexmq *mod.MQ, indexQueueName string) {
+	// Reading URL from Queues
 	url, err := readURL(mq)
 	if err != nil {
 		if strings.Compare(err.Error(), "no data") == 0 {
@@ -24,8 +26,8 @@ func run(mq *mod.MQ, s3 *mod.MinIO, bucketName string) {
 		log.Println(err)
 		return
 	}
-	log.Println(url)
 
+	// Extract all the URLs from HTML Code
 	_, err = extractURLs(url)
 	if err != nil {
 		if strings.Compare(err.Error(), "unable to save file") == 0 {
@@ -35,11 +37,21 @@ func run(mq *mod.MQ, s3 *mod.MinIO, bucketName string) {
 		return
 	}
 
+	// Store the Extracted URL's back into Queue
+
+	// Store the HTML Code into Persistent Memory
 	hash := xxh3.HashString128(url)
 	urlHash := strconv.FormatUint(hash.Hi, 10) + strconv.FormatUint(hash.Lo, 10) // 128-bit Hash
 	err = s3.UploadFile(bucketName, urlHash, "process.html", "text/html")
 	if err != nil {
 		log.Println("unable to upload file, are you sure upload service is working properly?")
+		return
+	}
+
+	// Store the URL Information into Queue
+	err = storeInfo(indexmq, indexQueueName, urlHash, bucketName, url)
+	if err != nil {
+		log.Println(err)
 		return
 	}
 }
@@ -80,5 +92,21 @@ func extractURLs(url string) (urls []string, err error) {
 		return []string{}, fmt.Errorf("unable to save file, are you sure the current path have permission to save file?")
 	}
 	urls = mod.ExtractURL(&buf, url)
+	return
+}
+
+// storeInfo Stores the HTML Code information into Queue
+func storeInfo(mq *mod.MQ, queueName string, filename string, bucketname string, url string) (err error) {
+	jdata := make(map[string]string)
+	jdata["url"] = url
+	jdata["bucketname"] = bucketname
+	jdata["filename"] = filename
+
+	data, err := json.Marshal(jdata)
+	if err != nil {
+		return fmt.Errorf("json parsing error in storeInfo()")
+	}
+
+	err = mq.SendMessage(data, queueName)
 	return
 }

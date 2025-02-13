@@ -36,6 +36,9 @@ A simple Web Crawler for a model Search Engines like Google
 
 ### Store the HTML Code Information into Queue
 
+- Take the stored HTML File name
+- Store the url, html file name, bucket name into Queue (Where indexing Nodes will access content)
+
 # Environment Variables
 
 | Environment Name         | Required | Description                             |
