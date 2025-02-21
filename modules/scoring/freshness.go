@@ -3,48 +3,72 @@ package scoring
 import (
 	"strings"
 	"time"
+
+	"github.com/gocql/gocql"
 )
 
-// FreshnessScore calculates the freshness score of a URL.
-func (t *Cassandra) FreshnessScore(url string, urlLastModified time.Time) (int, error) {
-	score := 0
+// FreshnessScore determines if a URL has fresh content based on timestamps.
+func (t *Cassandra) FreshnessScore(url string, urlLastModified time.Time, previousTime time.Time) bool {
 
-	// Task 1: Check if URL belongs to frequently updated sections
-	score += isFrequentlyUpdatedSection(url)
-
-	// Task 2: Handle Last-Modified logic
-	storedLastModified, err := t.GetLastModified(url)
-
-	if err != nil { // If no record exists in Cassandra
-		// Store the new Last-Modified date if available and return +30
-		if !urlLastModified.IsZero() {
-			err = t.UpdateLastModified(url, urlLastModified)
-			if err != nil {
-				return 0, err
-			}
-			score += 30
-		}
-	} else if urlLastModified.After(storedLastModified) { // If the URL has a newer date
-		// Update the Last-Modified date and return +30
-		err = t.UpdateLastModified(url, urlLastModified)
-		if err != nil {
-			return 0, err
-		}
-		score += 30
+	if urlLastModified.IsZero() && previousTime.IsZero() {
+		return false
 	}
 
-	return score, nil
+	if !urlLastModified.IsZero() && previousTime.IsZero() {
+		return false
+	}
+
+	if urlLastModified.Equal(previousTime) {
+		return false
+	}
+
+	if urlLastModified.After(previousTime) {
+		return true
+	}
+
+	return false
 }
 
-// isFrequentlyUpdatedSection checks if the URL is from sections like /news/, /blog/, etc.
-func isFrequentlyUpdatedSection(url string) int {
+// CheckDomain checks if the URL belongs to frequently updated sections
+func CheckDomain(url string) bool {
 	sections := []string{"/news/", "/blog/", "/latest/", "/updates/", "/breaking/"}
 	url = strings.ToLower(url)
 
 	for _, section := range sections {
 		if strings.Contains(url, section) {
-			return 30 // Return +30 if the condition satisfies
+			return true
 		}
 	}
-	return 0 // Return nothing (0) if no condition satisfies
+	return false
+}
+
+// UpdateLastModified updates the Last-Modified timestamp for a URL if it's newer.
+func (t *Cassandra) UpdateLastModified(url string, newTime time.Time) error {
+	if newTime.IsZero() {
+		return nil
+	}
+
+	var storedTime time.Time
+	err := t.session.Query(`SELECT last_modified_time FROM last_modified WHERE url = ?`, url).Scan(&storedTime)
+
+	if err != nil && err != gocql.ErrNotFound {
+		return err
+	}
+
+	if err == gocql.ErrNotFound || newTime.After(storedTime) {
+		return t.session.Query(`INSERT INTO last_modified (url, last_modified_time) VALUES (?, ?)`, url, newTime).Exec()
+	}
+
+	return nil
+}
+
+// GetLastModified fetches the last modified timestamp of a given URL
+func (t *Cassandra) GetLastModified(url string) (time.Time, error) {
+	var storedTime time.Time
+	err := t.session.Query(`SELECT last_modified_time FROM last_modified WHERE url = ?`, url).Scan(&storedTime)
+
+	if err != nil {
+		return time.Time{}, err
+	}
+	return storedTime, nil
 }

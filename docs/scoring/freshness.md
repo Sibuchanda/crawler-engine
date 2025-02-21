@@ -1,26 +1,58 @@
-## Freshness Score Implementation
+# Freshness Functions Documentation
 
-### Tasks Implemented in freshness.go
+## FreshnessScore()
 
-`1`  Checking for Freshness Keywords in the URL
+**Description:**  
+Determines if a URL has fresh content based on timestamps by comparing the last modified time.
 
-- If the URL belongs to frequently updated sections (like /news/, /blog/).
+**Parameters:**  
+- `url` (string) → The URL being checked.  
+- `urlLastModified` (time.Time) → The last modified time retrieved from the URL's HTTP header.  
+- `previousTime` (time.Time) → The previously stored last modified time from Cassandra.  
 
-- If any of these sections are found, the freshness score is incremented by +30.
+**Returns:**  
+- `true` → If the `urlLastModified` time is newer than `previousTime`.  
+- `false` → If timestamps are missing, equal, or not updated.  
 
-`2` Handling Last-Modified Header
+---
 
-- The function retrieves the Last-Modified date from the URL.
+## CheckDomain()
 
-- It then interacts with Cassandra (via cassandra.go) to manage and update stored timestamps.
+**Description:**  
+Checks if the given URL belongs to frequently updated sections like news or blogs.
 
+**Parameters:**  
+- `url` (string) → The URL we want to check.  
 
-#### Conditioons Handling Last-Modified Header
+**Returns:**  
+- `true` → If the URL contains keywords like `/news/`, `/blog/`, `/latest/`, etc.  
+- `false` → If the URL does not belong to any of these sections.  
 
-`(i)` First time fetching a URL, no last modified date in Cassandra, and URL also has no modified date → Return nothing.
+---
 
-`(ii)` If Cassandra has no date but URL has modified date → Return +30 and also update  in Cassandra.
+## UpdateLastModified()
 
-`(iii)` If URL has a modified date that is the same as stored in Cassandra → Do not return anything, do not update Cassandra.
+**Description:**  
+Updates the last modified timestamp of a URL in the Cassandra database if it is newer than the stored timestamp.
 
-`(iv)` If URL has a modified date that is latest than Cassandra’s stored date → Return +30 and update Cassandra.
+**Parameters:**  
+- `url` (string) → The URL whose last modified timestamp is being updated.  
+- `newTime` (time.Time) → The new last modified timestamp fetched from the HTTP response.  
+
+**Returns:**  
+- `nil` → If the update is successful.  
+- `error` → If an error occurs while updating the database.  
+
+---
+
+## GetLastModified()
+
+**Description:**  
+Fetches the last modified timestamp of a given URL from the Cassandra database.
+
+**Parameters:**  
+- `url` (string) → The URL whose last modified timestamp is being retrieved.  
+
+**Returns:**  
+- `time.Time` → The stored last modified timestamp.  
+- `error` → If the retrieval process fails.

@@ -2,7 +2,6 @@ package scoring
 
 import (
 	"errors"
-	"time"
 
 	"github.com/gocql/gocql"
 )
@@ -60,36 +59,4 @@ func (t *Cassandra) InitTables() (err error) {
 
 	t.init = true
 	return
-}
-
-// UpdateLastModified updates the Last-Modified timestamp for a URL if it's newer.
-func (t *Cassandra) UpdateLastModified(url string, newTime time.Time) error {
-	if newTime.IsZero() {
-		return nil // No update if no valid timestamp is provided
-	}
-
-	var storedTime time.Time
-	err := t.session.Query(`SELECT last_modified_time FROM last_modified WHERE url = ?`, url).Scan(&storedTime)
-
-	if err != nil && err != gocql.ErrNotFound {
-		return err
-	}
-
-	// If the URL is new or the new timestamp is more recent, update it
-	if err == gocql.ErrNotFound || newTime.After(storedTime) {
-		return t.session.Query(`INSERT INTO last_modified (url, last_modified_time) VALUES (?, ?)`, url, newTime).Exec()
-	}
-
-	return nil
-}
-
-// GetLastModified fetches the last modified timestamp of a given URL
-func (t *Cassandra) GetLastModified(url string) (time.Time, error) {
-	var storedTime time.Time
-	err := t.session.Query(`SELECT last_modified_time FROM last_modified WHERE url = ?`, url).Scan(&storedTime)
-
-	if err != nil {
-		return time.Time{}, err
-	}
-	return storedTime, nil
 }
