@@ -40,14 +40,21 @@ func (t *Cassandra) InitTables() (err error) {
 	}
 
 	// Creating Table `backlinks`
-	err = t.session.Query(`
-		CREATE TABLE IF NOT EXISTS backlinks (
+	err = t.session.Query(`CREATE TABLE IF NOT EXISTS backlinks (
 			url TEXT PRIMARY KEY, 
 			backlink_count COUNTER
-		);
-	`).Exec()
+		);`).Exec()
 	if err != nil {
 		return errors.New("unable to create table backlinks")
+	}
+
+	// Creating Table `last_modified`
+	err = t.session.Query(`CREATE TABLE IF NOT EXISTS last_modified (
+			url TEXT PRIMARY KEY,
+			last_modified_time TIMESTAMP
+		);`).Exec()
+	if err != nil {
+		return errors.New("unable to create table last_modified")
 	}
 
 	t.init = true
